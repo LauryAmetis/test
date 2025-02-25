@@ -2,6 +2,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
+#include <pwd.h>
 
 int main(int argc, char *argv[]) {
     printf("Hello World!\n");
@@ -16,6 +18,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    struct passwd *pwd;
+    pwd = getpwuid(fileStat.st_uid);
+    if (pwd == NULL) {
+        return 1;
+    }
+    
+
     // reading the selected directory with argv[1]
     dir_stream = opendir(argv[1]);
 
@@ -24,6 +33,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     printf("Information for %s\n", argv[1]);
+    printf("PERMISSIONS\t NOM DU FICHIER\t\t TAILLE\t\t PROPRIETAIRE\t\t DERNIERE MODIFICATION\n");
 
     while ((dir_read = readdir(dir_stream)) != NULL) {
         printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
@@ -36,7 +46,9 @@ int main(int argc, char *argv[]) {
         printf( (fileStat.st_mode & S_IROTH) ? "r" : "-");
         printf( (fileStat.st_mode & S_IWOTH) ? "w" : "-");
         printf( (fileStat.st_mode & S_IXOTH) ? "x\t" : "-\t");
-        printf("%s\t%d bytes\n", dir_read->d_name, dir_read->d_reclen);
+        printf("%s\t\t\t%d bytes\t", dir_read->d_name, dir_read->d_reclen);
+        printf("%s\t", pwd->pw_name);
+        printf("%s", ctime(&fileStat.st_mtime));
     }
 
     if (closedir(dir_stream) == -1) {
